@@ -1,11 +1,3 @@
-
-import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
-import numpy as np
-import pandas as pd 
-from dai_auct import Urn
-
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -14,13 +6,15 @@ import glob
 import os
 import random
 
+import pandas as pd
+import numpy as np
 
 ACTION_SKIP = 0
 ACTION_BUY = 1
 ACTION_SELL = 2
-csv_file='../data/ETHUSDT_simp.csv'
-class SystemState:
-    def __init__(self, equity_path=csv_file, sep=','):
+
+class StockState:
+    def __init__(self, equity_path, sep=','):
         df = self.read_csv(equity_path, sep=sep)
 
         df = df.fillna(method='ffill')
@@ -58,10 +52,10 @@ class SystemState:
     def current_price(self):
         return self.df.ix[self.index, 'Close']
 
-class DaiLemmaEnv(gym.Env):
+class StocksEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, datadir='../data'):
+    def __init__(self, datadir):
         self.bound = 100000
 
         self.comission = 0.1 / 100.
@@ -119,7 +113,7 @@ class DaiLemmaEnv(gym.Env):
         return state, reward, done, {}
 
     def reset(self):
-        self.state = SystemState(random.choice(self.states))
+        self.state = StockState(random.choice(self.states))
 
         self.money = 1000000
         self.equity = 0

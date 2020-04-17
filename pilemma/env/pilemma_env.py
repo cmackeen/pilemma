@@ -4,7 +4,7 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
 import pandas as pd 
-from dai_auct import Urn
+#from dai_auct import Urn
 
 import gym
 from gym import error, spaces, utils
@@ -18,7 +18,7 @@ import random
 ACTION_SKIP = 0
 ACTION_BUY = 1
 ACTION_SELL = 2
-csv_file='../data/ETHUSDT_simp.csv'
+csv_file='./pilemma/data/ETHUSDT_simp.csv'
 class SystemState:
     def __init__(self, equity_path=csv_file, sep=','):
         df = self.read_csv(equity_path, sep=sep)
@@ -61,7 +61,7 @@ class SystemState:
 class DaiLemmaEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, datadir='../data'):
+    def __init__(self, datadir='./pilemma/data'):
         self.bound = 100000
 
         self.comission = 0.1 / 100.

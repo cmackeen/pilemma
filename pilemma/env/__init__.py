@@ -1,1 +1,1 @@
-from pilemma.envs.pilemma_env import DaiLemma
+from pilemma.env.pilemma_env import DaiLemmaEnv

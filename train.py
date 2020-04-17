@@ -9,7 +9,7 @@ from stable_baselines.results_plotter import load_results, ts2xy
 from stable_baselines.ddpg import AdaptiveParamNoiseSpec
 from stable_baselines import results_plotter
 from stable_baselines import PPO2
-import gym_stocks
+import pilemma
 
 
 
@@ -40,7 +40,7 @@ def callback(_locals, _globals):
                 best_mean_reward = mean_reward
                 # Example for saving best model
                 print("Saving new best model")
-                _locals['self'].save(log_dir + str(time.strftime("%M-%S_%d_%b"))+'best_model3.pkl')
+                _locals['self'].save(log_dir + str(time.strftime("%d_%b"))+'_best_model.pkl')
     n_steps += 1
     return True
 
@@ -53,10 +53,10 @@ env = gym.make('pilemma-v0')
 env = Monitor(env, log_dir, allow_early_resets=True)
 
 # Because we use parameter noise, we should use a MlpPolicy with layer normalization
-model=PPO2('MlpPolicy', env,verbose=0)
+model=PPO2('MlpPolicy', env,verbose=0, n_cpu_tf_sess=18,tensorboard_log="./tmp/tboard/")
 #model = DDPG('MlpPolicy', env, param_noise=param_noise, verbose=0, n_cpu_tf_sess=18, tensorboard_log="./tmp/ddpg_mlp_tboard/")
 # Train the agent
-time_steps = 1e4
+time_steps = 1e6
 model.learn(total_timesteps=int(time_steps), callback=callback)
 
 results_plotter.plot_results([log_dir], time_steps, results_plotter.X_TIMESTEPS, "stock_ppo2")

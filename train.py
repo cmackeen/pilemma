@@ -11,11 +11,6 @@ from stable_baselines import results_plotter
 from stable_baselines import PPO2
 import pilemma
 
-
-
-
-
-
 best_mean_reward, n_steps = -np.inf, 0
 
 def callback(_locals, _globals):
@@ -56,7 +51,7 @@ env = Monitor(env, log_dir, allow_early_resets=True)
 model=PPO2('MlpPolicy', env,verbose=0, n_cpu_tf_sess=18,tensorboard_log="./tmp/tboard/")
 #model = DDPG('MlpPolicy', env, param_noise=param_noise, verbose=0, n_cpu_tf_sess=18, tensorboard_log="./tmp/ddpg_mlp_tboard/")
 # Train the agent
-time_steps = 1e6
+time_steps = 1e5
 model.learn(total_timesteps=int(time_steps), callback=callback)
 
 results_plotter.plot_results([log_dir], time_steps, results_plotter.X_TIMESTEPS, "stock_ppo2")

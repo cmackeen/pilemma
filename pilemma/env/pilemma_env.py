@@ -4,20 +4,20 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
 import pandas as pd 
-#from dai_auct import Urn
 
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
-
+from pilemma.env.dai_auct import Urn
 import glob
 import os
 import random
 
-init_money=10000
+init_dai=0
+init_eth=100
 ACTION_SKIP = 0
-ACTION_BUY = 1
-ACTION_SELL = 2
+ACTION_MINT = 1
+ACTION_CLOSE = 2
 csv_file='./pilemma/data/ETHUSDT_long_simpdt.csv'
 nr=sum(1 for line in open(csv_file))-101
 window=1000
@@ -62,20 +62,24 @@ class SystemState:
     def current_price(self):
         return self.df.ix[self.index, 'Close']
 
+    def current_time(self):
+        return self.df.ix[self.index, 'Deltat']
+
 class DaiLemmaEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, datadir='./pilemma/data'):
         self.bound = 100000
 
-        self.comission = 0.1 / 100.
-        self.num = 1
+        self.num = 10
 
-        self.money = 0
+        self.eth = init_eth
+        self.dai = init_dai
         self.rowpick = 0
         self.meta_counter =0
         self.equity = 0
         self.states = []
+        self.urns = 0
         self.state = None
 
         for path in glob.glob(datadir + '/ETHUSDT_long_simpdt.csv'):
@@ -95,22 +99,24 @@ class DaiLemmaEnv(gym.Env):
     def step(self, action):
         assert self.action_space.contains(action)
 
-        portfolio = self.money + (1. - self.comission) * self.equity * self.state.current_price()
+        prev_portfolio= self.dai + self.eth * self.state.current_price()
         price = self.state.current_price()
         cost = price * self.num
-        comission_price = cost * (1. + self.comission)
-        equity_price = price * self.equity
-        prev_portfolio = self.money + equity_price
+        cdp = Urn()
+		
 
-        if action == ACTION_BUY:
-            if self.money >= comission_price:
-                self.money -= comission_price
-                self.equity += self.num
-        if action == ACTION_SELL:
-            if self.equity > 0:
-                self.money += (1. - self.comission) * cost
-                self.equity -= self.num
-                self.counter += 1
+        if action == ACTION_MINT:
+            if self.urns == 0:
+                self.eth-=self.num
+                cdp.mint(1.52*self.num*price,self.num,self.state.current_time())
+                self.dai += cdp.art
+                self.urns = 1
+        if action == ACTION_CLOSE:
+            if self.urns == 1:
+                self.dai-=cdp.art
+                haul=cdp.close(cdp.art,self.state.current_time())
+                self.eth+=haul
+                self.urns=0
 
         state, done = self.state.next()
 
@@ -118,23 +124,22 @@ class DaiLemmaEnv(gym.Env):
         if not done:
             new_price = self.state.current_price()
 
-        new_equity_price = new_price * self.equity
-        reward = (self.money + 0.4*new_equity_price) - prev_portfolio
-        #reward = self.money - init_money
-        self.episode_total_reward=reward
-        info=self.counter
+        portfolio= self.dai + self.eth * self.state.current_price()
+        reward = portfolio - prev_portfolio
 
         return state, reward, done, {}
 
     def reset(self):
-        if self.meta_counter%30==0:
+        if self.meta_counter%3000==0:
             self.rowpick=np.random.choice(range(1,nr))
             print(self.meta_counter)
 
         self.state = SystemState(random.choice(self.states),skiprows=self.rowpick)
 
-        self.money = init_money
+        self.eth = init_eth
+        self.dai = init_dai
         self.equity = 0
+        self.urns = 0
         self.counter = 0
         self.meta_counter += 1
         state, done = self.state.next()

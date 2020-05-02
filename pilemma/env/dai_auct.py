@@ -15,13 +15,16 @@ class Urn():
         self.sf=STABILITY_FEE
         self.liquidate=False
         self.art=0
+        self.daibid=0
         self.time=0
         self.ink=0
+        self.tab=0
         self.closed=False
 
     def mint(self,amount,collateral,dt):
         self.art=amount
         self.ink=collateral
+        self.tab=collateral
         self.time=dt
         self.liq_ratio=1.5
 
@@ -37,15 +40,17 @@ class Urn():
         else:
             pass
 
-    def dent(current_t):
-        # eventually Number of bids based on random possion distribution 
-        
-        # let's imagine initially best case
-        # best case is you get your ink with no competition
-        #hence you lose interest and liquidationfee
-        haul=(1-(current_t-self.time)*self.sf/YTH)*self.ink
-        self.closed=True
-        return haul 
+    def dent(selfcurrent_t):
+        def bid(self):
+            self.daibid+=1.03*self.daibid
+            self.closed=True
+        return self.daibid
+
+    def tend(selfcurrent_t):
+        def bid(self):
+            self.tab-=.97*self.tab
+            self.closed=True
+        return self.tab 
 
 
         

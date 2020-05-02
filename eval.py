@@ -4,7 +4,7 @@ from stable_baselines import PPO2
 from stable_baselines.common.evaluation import evaluate_policy
 import numpy as np
 import pilemma
-
+import pandas as pd
 # Create environment
 env = gym.make('pilemma-v0')
 env = gym.wrappers.Monitor(env, './tmp/eval', force=True)
@@ -26,7 +26,7 @@ def evaluate(model, num_steps=1000):
       obs, reward, done, info = env.step(action)
       # Stats
       episode_rewards[-1] += reward
-      data_out.append(obs)
+      data_out.append([obs,action])
       if done:
           obs = env.reset()
           episode_rewards.append(0.0)
@@ -40,8 +40,8 @@ def evaluate(model, num_steps=1000):
 
 # anstantiate the agent
 model = PPO2('MlpPolicy', env)
-model.load_parameters(load_path_or_dict="tmp/17_Apr_best_model.pkl")
+model.load_parameters(load_path_or_dict="tmp/02_May_best_model_ovnigh_rew_-112.49559756944444.pkl")
 
-eval_model = evaluate(model, num_steps=1000)
+eval_model = evaluate(model, num_steps=999)
 mean_reward = eval_model[0]
-system_acts=eval_model[1]
+acts=pd.Series(np.transpose(data_out)[1])
